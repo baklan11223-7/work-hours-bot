@@ -145,8 +145,8 @@ def handle_date(message):
     user_id = message.chat.id
     if user_id in user_states:
 
-user_states[user_id]["date"] = message.text
-        choose_position(user_id)
+       user_states[user_id]["date"] = message.text
+       choose_position(user_id)
 
 # ---------- POSITION ----------
 
