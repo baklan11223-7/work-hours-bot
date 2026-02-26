@@ -235,4 +235,26 @@ def admin_select(message):
         bot.send_message(user_id, "Введіть нову погодинну ставку:")
         user_states[user_id]["step"] = "change_rate"
 
-bot.infinity_polling()
+from flask import Flask, request
+
+app = Flask(__name__)
+
+WEBHOOK_PATH = f"/{TOKEN}"
+WEBHOOK_URL = f"https://work-hours-bot.onrender.com{WEBHOOK_PATH}"
+
+bot.remove_webhook()
+bot.set_webhook(url=WEBHOOK_URL)
+
+@app.route(WEBHOOK_PATH, methods=['POST'])
+def webhook():
+    json_str = request.get_data().decode('UTF-8')
+    update = telebot.types.Update.de_json(json_str)
+    bot.process_new_updates([update])
+    return '', 200
+
+@app.route("/")
+def index():
+    return "Bot is running"
+
+if name == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
