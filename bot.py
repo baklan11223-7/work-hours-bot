@@ -149,9 +149,9 @@ def handle(message):
         return
 
     if text == "📊 Мій звіт":
+if text == "📊 Мій звіт":
         total = sum(s["total"] for s in user["shifts"])
-
-advance_total = sum(a["amount"] for a in user["advances"])
+        advance_total = sum(a["amount"] for a in user["advances"])
         to_pay = total - advance_total
 
         bot.send_message(
