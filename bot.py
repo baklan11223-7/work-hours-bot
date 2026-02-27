@@ -70,9 +70,9 @@ def handle(message):
         return
 
     if text == "📅 Змінити день":
-    user["step"] = "change_day"
-    bot.send_message(chat_id, "Введіть день місяця (1–31):")
-    return
+        user["step"] = "change_day"
+        bot.send_message(chat_id, "Введіть день місяця (1–31):")
+        return
 
     if user.get("step") == "change_day":
         try:
