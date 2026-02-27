@@ -4,11 +4,10 @@ from datetime import datetime
 import os
 
 TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_ID = 4440544791  # <-- твій ID
+ADMIN_ID = 4440544791  # твій ID
 
 bot = telebot.TeleBot(TOKEN)
 
-# ===== ПОСАДИ =====
 positions = {
     "Бродильний Цех (Бродильщик)": 143,
     "Кегомийний Цех (Старший зміни)": 143,
@@ -19,7 +18,6 @@ positions = {
 user_data = {}
 
 
-# ===== КНОПКИ =====
 def main_keyboard():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add("Додати зміну")
@@ -35,7 +33,6 @@ def position_keyboard():
     return markup
 
 
-# ===== СТАРТ =====
 @bot.message_handler(commands=["start"])
 def start(message):
     chat_id = message.chat.id
@@ -51,7 +48,6 @@ def start(message):
         bot.send_message(chat_id, "Меню:", reply_markup=main_keyboard())
 
 
-# ===== ОБРОБКА ПОВІДОМЛЕНЬ =====
 @bot.message_handler(func=lambda message: True)
 def handle(message):
     chat_id = message.chat.id
@@ -66,13 +62,11 @@ def handle(message):
 
     step = user_data[chat_id]["step"]
 
-    # ===== РЕЄСТРАЦІЯ =====
     if step == "register":
         user_data[chat_id]["name"] = text
         user_data[chat_id]["step"] = None
         bot.send_message(chat_id, "Реєстрація завершена ✅", reply_markup=main_keyboard())
 
-    # ===== ДОДАТИ ЗМІНУ =====
     elif text == "Додати зміну":
         user_data[chat_id]["step"] = "position"
         bot.send_message(chat_id, "Оберіть посаду:", reply_markup=position_keyboard())
@@ -124,7 +118,6 @@ def handle(message):
                 reply_markup=main_keyboard()
             )
 
-            # адміну
             bot.send_message(
                 ADMIN_ID,
                 f"Нова зміна:\n"
@@ -135,17 +128,16 @@ def handle(message):
             )
 
         except:
-            bot.send_message(chat_id, "Помилка. Формат 08:00 і число для обіду.")
+            bot.send_message(chat_id, "Помилка. Формат часу 08:00 і число для обіду.")
 
-    # ===== МІЙ ЗВІТ =====
-
-elif text == "Мій звіт":
+    elif text == "Мій звіт":
         total = sum(s["total"] for s in user_data[chat_id]["shifts"])
         bot.send_message(chat_id, f"Загальна сума: {total} грн")
 
-    # ===== ЗАБРАТИ ЗАРПЛАТУ =====
     elif text == "Забрати зарплату":
-        now = datetime.now()
+        now = datetime.
+
+now()
         month = now.month
         year = now.year
 
@@ -156,7 +148,6 @@ elif text == "Мій звіт":
 
         total_month = sum(s["total"] for s in month_shifts)
 
-        # видаляємо тільки поточний місяць
         user_data[chat_id]["shifts"] = [
             s for s in user_data[chat_id]["shifts"]
             if not (s["month"] == month and s["year"] == year)
