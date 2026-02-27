@@ -23,6 +23,7 @@ user_data = {}
 def main_keyboard():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.row("➕ Додати зміну")
+    markup.row("📅 Змінити день")
     markup.row("📊 Мій звіт")
     markup.row("➖ Взяти аванс")
     markup.row("💰 Забрати зарплату")
