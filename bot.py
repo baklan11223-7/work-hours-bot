@@ -49,6 +49,7 @@ def handle(message):
             "rate": 0,
             "start": None,
             "end": None,
+            "selecte_day": datetime.now().day,
             "shifts": [],
             "advances": []
         }
