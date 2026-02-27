@@ -127,12 +127,12 @@ def handle(message):
 
     elif text == "Забрати зарплату":
         now = datetime.now()
-
-month = now.month
+        month = now.month
         year = now.year
 
-        month_shifts = [s for s in user_data[chat_id]["shifts"]
-                        if s["month"] == month and s["year"] == year]
+        month_shifts = [
+            s for s in user_data[chat_id]["shifts"]
+            if s["month"] == month and s["year"] == year]
 
         total_month = sum(s["total"] for s in month_shifts)
 
