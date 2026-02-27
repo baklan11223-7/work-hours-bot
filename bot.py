@@ -74,7 +74,6 @@ def handle(message):
         bot.send_message(chat_id, "Введіть день місяця (1–31):")
         return
 
-    if step == "change_day":
 if step == "change_day":
     try:
         day = int(text)
@@ -87,7 +86,7 @@ if step == "change_day":
                 f"День змінено на {day} число ✅",
                 reply_markup=main_keyboard()
             )
-        else:
+         else:
             bot.send_message(chat_id, "Введіть число від (1 до 31):")
 
     except Exception:
