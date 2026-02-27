@@ -1,169 +1,171 @@
-import os
 import telebot
-from flask import Flask, request
+from telebot import types
 from datetime import datetime
+import os
 
 TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_ID = 8603408375  # твій Telegram ID
+ADMIN_ID = 4440544791  # <-- твій ID
 
 bot = telebot.TeleBot(TOKEN)
-app = Flask(__name__)
 
+# ===== ПОСАДИ =====
 positions = {
     "Бродильний Цех (Бродильщик)": 143,
     "Кегомийний Цех (Старший зміни)": 143,
     "Кегомийний Цех (Кегомийщик)": 110,
-    "Кегомийний Цех (Налив Бутилок)": 110
+    "Кегомийний Цех (Налив Бутилок)": 110,
 }
 
 user_data = {}
 
 
+# ===== КНОПКИ =====
 def main_keyboard():
-    markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add("Внести зміну")
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add("Додати зміну")
     markup.add("Мій звіт")
     markup.add("Забрати зарплату")
     return markup
 
 
 def position_keyboard():
-    markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-    for pos in positions:
-        markup.add(pos)
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    for p in positions:
+        markup.add(p)
     return markup
 
 
-@bot.message_handler(commands=['start'])
+# ===== СТАРТ =====
+@bot.message_handler(commands=["start"])
 def start(message):
     chat_id = message.chat.id
-    user_data[chat_id] = {
-        "name": None,
-        "step": "name",
-        "shifts": []
-    }
-    bot.send_message(chat_id, "Введи ім'я та прізвище:")
+
+    if chat_id not in user_data:
+        user_data[chat_id] = {
+            "name": None,
+            "step": "register",
+            "shifts": []
+        }
+        bot.send_message(chat_id, "Введіть Прізвище Імʼя:")
+    else:
+        bot.send_message(chat_id, "Меню:", reply_markup=main_keyboard())
 
 
+# ===== ОБРОБКА ПОВІДОМЛЕНЬ =====
 @bot.message_handler(func=lambda message: True)
 def handle(message):
     chat_id = message.chat.id
     text = message.text
 
     if chat_id not in user_data:
-        return
+        user_data[chat_id] = {
+            "name": None,
+            "step": "register",
+            "shifts": []
+        }
 
     step = user_data[chat_id]["step"]
 
-    if step == "name":
+    # ===== РЕЄСТРАЦІЯ =====
+    if step == "register":
         user_data[chat_id]["name"] = text
         user_data[chat_id]["step"] = None
-        bot.send_message(chat_id, "Готово ✅", reply_markup=main_keyboard())
+        bot.send_message(chat_id, "Реєстрація завершена ✅", reply_markup=main_keyboard())
 
-    elif text == "Внести зміну":
+    # ===== ДОДАТИ ЗМІНУ =====
+    elif text == "Додати зміну":
         user_data[chat_id]["step"] = "position"
-        bot.send_message(chat_id, "Вибери посаду:", reply_markup=position_keyboard())
+        bot.send_message(chat_id, "Оберіть посаду:", reply_markup=position_keyboard())
 
     elif step == "position" and text in positions:
         user_data[chat_id]["position"] = text
         user_data[chat_id]["rate"] = positions[text]
-        user_data[chat_id]["step"] = "hours"
-        bot.send_message(chat_id, "Скільки годин?")
+        user_data[chat_id]["step"] = "start_time"
+        bot.send_message(chat_id, "Час початку роботи? (08:00)")
 
-    elif step == "position" and text in positions:
-    user_data[chat_id]["position"] = text
-    user_data[chat_id]["rate"] = positions[text]
-    user_data[chat_id]["step"] = "start_time"
-    bot.send_message(chat_id, "О котрій почали? (08:00)")
+    elif step == "start_time":
+        user_data[chat_id]["start_time"] = text
+        user_data[chat_id]["step"] = "end_time"
+        bot.send_message(chat_id, "Час завершення роботи? (18:00)")
 
+    elif step == "end_time":
+        user_data[chat_id]["end_time"] = text
+        user_data[chat_id]["step"] = "break"
+        bot.send_message(chat_id, "Обід (в хвилинах)?")
 
-elif step == "start_time":
-    user_data[chat_id]["start_time"] = text
-    user_data[chat_id]["step"] = "end_time"
-    bot.send_message(chat_id, "О котрій завершили? (18:00)")
+    elif step == "break":
+        try:
+            break_minutes = int(text)
 
+            start = datetime.strptime(user_data[chat_id]["start_time"], "%H:%M")
+            end = datetime.strptime(user_data[chat_id]["end_time"], "%H:%M")
 
-elif step == "end_time":
-    user_data[chat_id]["end_time"] = text
-    user_data[chat_id]["step"] = "break_time"
-    bot.send_message(chat_id, "Скільки хвилин був обід?")
+            worked_minutes = (end - start).total_seconds() / 60 - break_minutes
+            hours = round(worked_minutes / 60, 2)
 
+            rate = user_data[chat_id]["rate"]
+            total = round(hours * rate, 2)
 
-elif step == "break_time":
-    try:
-        break_minutes = int(text)
+            shift = {
+                "date": datetime.now().strftime("%Y-%m-%d"),
+                "month": datetime.now().month,
+                "year": datetime.now().year,
+                "position": user_data[chat_id]["position"],
+                "hours": hours,
+                "total": total
+            }
 
-        start = datetime.strptime(user_data[chat_id]["start_time"], "%H:%M")
-        end = datetime.strptime(user_data[chat_id]["end_time"], "%H:%M")
+            user_data[chat_id]["shifts"].append(shift)
+            user_data[chat_id]["step"] = None
 
-        worked_minutes = (end - start).total_seconds() / 60
-        worked_minutes -= break_minutes
+            bot.send_message(
+                chat_id,
+                f"Зміна додана ✅\nГодини: {hours}\nСума: {total} грн",
+                reply_markup=main_keyboard()
+            )
 
-        hours = round(worked_minutes / 60, 2)
-        rate = user_data[chat_id]["rate"]
-        total = round(hours * rate, 2)
-
-        shift = {
-            "date": datetime.now().strftime("%Y-%m-%d"),
-            "position": user_data[chat_id]["position"],
-            "start": user_data[chat_id]["start_time"],
-            "end": user_data[chat_id]["end_time"],
-            "break": break_minutes,
-            "hours": hours,
-            "total": total
-        }
-
-        user_data[chat_id]["shifts"].append(shift)
-        user_data[chat_id]["step"] = None
-
-        bot.send_message(chat_id, f"Зміна додана ✅\nГодини: {hours}\nСума: {total} грн")
-
-    except:
-        bot.send_message(chat_id, "Помилка. Перевір формат часу.")
+            # адміну
+            bot.send_message(
+                ADMIN_ID,
+                f"Нова зміна:\n"
+                f"{user_data[chat_id]['name']}\n"
+                f"{shift['position']}\n"
+                f"{hours} год\n"
+                f"{total} грн"
+            )
 
         except:
-            bot.send_message(chat_id, "Введи число.")
+            bot.send_message(chat_id, "Помилка. Формат 08:00 і число для обіду.")
 
-    elif text == "Мій звіт":
+    # ===== МІЙ ЗВІТ =====
+
+elif text == "Мій звіт":
         total = sum(s["total"] for s in user_data[chat_id]["shifts"])
         bot.send_message(chat_id, f"Загальна сума: {total} грн")
 
+    # ===== ЗАБРАТИ ЗАРПЛАТУ =====
     elif text == "Забрати зарплату":
-        month = datetime.now().month
-        year = datetime.now().year
+        now = datetime.now()
+        month = now.month
+        year = now.year
 
-        total_month = 0
-        remaining_shifts = []
+        month_shifts = [
+            s for s in user_data[chat_id]["shifts"]
+            if s["month"] == month and s["year"] == year
+        ]
 
-        for shift in user_data[chat_id]["shifts"]:
-            shift_date = datetime.strptime(shift["date"], "%Y-%m-%d")
+        total_month = sum(s["total"] for s in month_shifts)
 
-            if shift_date.month == month and shift_date.year == year:
-                total_month += shift["total"]
-            else:
-                remaining_shifts.append(shift)
+        # видаляємо тільки поточний місяць
+        user_data[chat_id]["shifts"] = [
+            s for s in user_data[chat_id]["shifts"]
+            if not (s["month"] == month and s["year"] == year)
+        ]
 
-        user_data[chat_id]["shifts"] = remaining_shifts
+        bot.send_message(chat_id, f"Зарплата за місяць: {total_month} грн\nОбнулено ✅")
 
-        bot.send_message(chat_id, f"Зарплата за місяць: {round(total_month, 2)} грн\nОбнулено ✅")
-
-
-# ---------- WEBHOOK ----------
-
-@app.route(f"/{TOKEN}", methods=["POST"])
-def webhook():
-    json_str = request.get_data().decode("UTF-8")
-    update = telebot.types.Update.de_json(json_str)
-    bot.process_new_updates([update])
-    return "OK", 200
+    else:
+        bot.send_message(chat_id, "Обери дію з меню.", reply_markup=main_keyboard())
 
 
-@app.route("/")
-def index():
-    return "Bot is running"
-
-
-if __name__ == "__main__":
-    bot.remove_webhook()
-    bot.set_webhook(url=os.getenv("RENDER_EXTERNAL_URL") + "/" + TOKEN)
-    app.run(host="0.0.0.0", port=10000)
+bot.infinity_polling()
