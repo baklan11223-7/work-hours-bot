@@ -83,7 +83,7 @@ def handle(message):
                 bot.send_message(chat_id, f"День змінено на {day} число ✅", reply_markup=main_keyboard())
             else:
                 bot.send_message(chat_id, "Введіть число від (1 до 31):")
-    except:
+        except:
         bot.send_message(chat_id, "Введіть число")
     return
     if text == "➕ Додати зміну":
