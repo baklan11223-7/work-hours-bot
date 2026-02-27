@@ -140,7 +140,7 @@ def index():
     return "Bot is running"
 
 
-if name == "__main__":
+if __name__ == "__main__":
     bot.remove_webhook()
     bot.set_webhook(url=os.getenv("RENDER_EXTERNAL_URL") + "/" + TOKEN)
     app.run(host="0.0.0.0", port=10000)
