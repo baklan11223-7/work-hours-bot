@@ -253,8 +253,10 @@ def webhook():
     return '', 200
 
 @app.route("/")
-def index():
-    return "Bot is running"
+def webhook():
+    bot.remove_webhook()
+    bot.set_webhook(url=os.environ.get("RENDER_EXTERNAL_URL") + "/" + TOKEN)
+    return "Webhook set!"
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
