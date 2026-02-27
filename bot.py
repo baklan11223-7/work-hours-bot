@@ -129,9 +129,7 @@ def handle(message):
         total_month = 0
 
         for shift in user_data[chat_id]["shifts"]:
-            shift_date = datetime.now()
-
-strptime(shift["date"], "%Y-%m-%d")
+            shift_date = datetime.strptime(shift["date"], "%Y-%m-%d")
             if shift_date.month == month and shift_date.year == year:
                 total_month += shift["total"]
 
