@@ -84,7 +84,7 @@ def handle(message):
             else:
                 bot.send_message(chat_id, "Введіть число від (1 до 31):")
         except:
-        bot.send_message(chat_id, "Введіть число")
+            bot.send_message(chat_id, "Введіть число")
     return
     if text == "➕ Додати зміну":
         user["step"] = "position"
