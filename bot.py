@@ -75,16 +75,24 @@ def handle(message):
         return
 
     if step == "change_day":
-        try:
-            day = int(text)
-            if 1 <= day <= 31:
-                user["selected_day"] = day
-                user["step"] = None
-                bot.send_message(chat_id, f"День змінено на {day} число ✅", reply_markup=main_keyboard())
-            else:
-                bot.send_message(chat_id, "Введіть число від (1 до 31):")
-        except:
-            bot.send_message(chat_id, "Введіть число")
+if step == "change_day":
+    try:
+        day = int(text)
+
+        if 1 <= day <= 31:
+            user["selected_day"] = day
+            user["step"] = None
+            bot.send_message(
+                chat_id,
+                f"День змінено на {day} число ✅",
+                reply_markup=main_keyboard()
+            )
+        else:
+            bot.send_message(chat_id, "Введіть число від (1 до 31):")
+
+    except Exception:
+        bot.send_message(chat_id, "Введіть число")
+
     return
     if text == "➕ Додати зміну":
         user["step"] = "position"
