@@ -70,33 +70,56 @@ def handle(message):
         user_data[chat_id]["step"] = "hours"
         bot.send_message(chat_id, "Скільки годин?")
 
-    elif step == "hours":
-        try:
-            hours = float(text)
-            rate = user_data[chat_id]["rate"]
-            total = hours * rate
+    elif step == "position" and text in positions:
+    user_data[chat_id]["position"] = text
+    user_data[chat_id]["rate"] = positions[text]
+    user_data[chat_id]["step"] = "start_time"
+    bot.send_message(chat_id, "О котрій почали? (08:00)")
 
-            shift = {
-                "date": datetime.now().strftime("%Y-%m-%d"),
-                "position": user_data[chat_id]["position"],
-                "hours": hours,
-                "total": total
-            }
 
-            user_data[chat_id]["shifts"].append(shift)
-            user_data[chat_id]["step"] = None
+elif step == "start_time":
+    user_data[chat_id]["start_time"] = text
+    user_data[chat_id]["step"] = "end_time"
+    bot.send_message(chat_id, "О котрій завершили? (18:00)")
 
-            bot.send_message(chat_id, f"Зміна додана ✅\n{hours} год × {rate} грн = {total} грн", reply_markup=main_keyboard())
 
-            # звіт адміну
-            bot.send_message(
-                ADMIN_ID,
-                f"Нова зміна:\n"
-                f"{user_data[chat_id]['name']}\n"
-                f"{shift['position']}\n"
-                f"{hours} год\n"
-                f"{total} грн"
-            )
+elif step == "end_time":
+    user_data[chat_id]["end_time"] = text
+    user_data[chat_id]["step"] = "break_time"
+    bot.send_message(chat_id, "Скільки хвилин був обід?")
+
+
+elif step == "break_time":
+    try:
+        break_minutes = int(text)
+
+        start = datetime.strptime(user_data[chat_id]["start_time"], "%H:%M")
+        end = datetime.strptime(user_data[chat_id]["end_time"], "%H:%M")
+
+        worked_minutes = (end - start).total_seconds() / 60
+        worked_minutes -= break_minutes
+
+        hours = round(worked_minutes / 60, 2)
+        rate = user_data[chat_id]["rate"]
+        total = round(hours * rate, 2)
+
+        shift = {
+            "date": datetime.now().strftime("%Y-%m-%d"),
+            "position": user_data[chat_id]["position"],
+            "start": user_data[chat_id]["start_time"],
+            "end": user_data[chat_id]["end_time"],
+            "break": break_minutes,
+            "hours": hours,
+            "total": total
+        }
+
+        user_data[chat_id]["shifts"].append(shift)
+        user_data[chat_id]["step"] = None
+
+        bot.send_message(chat_id, f"Зміна додана ✅\nГодини: {hours}\nСума: {total} грн")
+
+    except:
+        bot.send_message(chat_id, "Помилка. Перевір формат часу.")
 
         except:
             bot.send_message(chat_id, "Введи число.")
