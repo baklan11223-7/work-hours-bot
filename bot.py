@@ -223,17 +223,34 @@ def handle(message):
         return
 
     if text == "📊 Мій звіт":
-        total = sum(s["total"] for s in user["shifts"])
-        advance_total = sum(a["amount"] for a in user["advances"])
-        to_pay = total - advance_total
+        user_id = str(chat_id)
+
+        # Загальні години
+        cursor.execute("SELECT SUM(hours) FROM shifts WHERE user_id = ?", (user_id,))
+        result = cursor.fetchone()
+        total_hours = result[0] if result[0] else 0
+
+        # Загальна сума
+        cursor.execute("SELECT SUM(total) FROM shifts WHERE user_id = ?", (user_id,))
+        result = cursor.fetchone()
+        total_money = result[0] if result[0] else 0
+
+        # Аванси
+        cursor.execute("SELECT SUM(amount) FROM advances WHERE user_id = ?", (user_id,))
+        result = cursor.fetchone()
+        advance_total = result[0] if result[0] else 0
+
+        to_pay = total_money - advance_total
 
         bot.send_message(
             chat_id,
-            f"Нараховано: {total} грн\n"
-            f"Аванс: {advance_total} грн\n"
-            f"До виплати: {to_pay} грн"
+            f"📊 Твій звіт:\n\n"
+            f"⏱ Годин: {round(total_hours,2)}\n"
+            f"💰 Нараховано: {round(total_money,2)} грн\n"
+            f"💸 Аванс: {round(advance_total,2)} грн\n"
+            f"🟢 До виплати: {round(to_pay,2)} грн"
         )
-        return
+    return
 
     if text == "💰 Забрати зарплату":
         total = sum(s["total"] for s in user["shifts"])
