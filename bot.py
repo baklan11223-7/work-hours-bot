@@ -145,6 +145,8 @@ def handle(message):
                 "hours": hours,
                 "total": total
             })
+            
+            save_data(user_data)
 
             user["step"] = None
 
