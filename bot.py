@@ -173,14 +173,14 @@ def handle(message):
             total = round(hours * user["rate"], 2)
 
             user_id = str(chat_id)
-date = datetime.now().strftime("%Y-%m-%d")
-
-cursor.execute("""
-INSERT INTO shifts (user_id, date, hours, total)
-VALUES (?, ?, ?, ?)
-""", (user_id, date, hours, total))
-
-conn.commit()
+            date = datetime.now().strftime("%Y-%m-%d")
+            
+            cursor.execute("""
+            INSERT INTO shifts (user_id, date, hours, total)
+            VALUES (?, ?, ?, ?)
+            """, (user_id, date, hours, total))
+            
+            conn.commit()
 
             user["step"] = None
 
