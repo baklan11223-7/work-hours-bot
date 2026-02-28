@@ -1,4 +1,5 @@
 import os
+import json
 from flask import Flask, request
 import telebot
 from telebot import types
@@ -9,6 +10,17 @@ ADMIN_ID = 4440544791
 
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
+DATA_FILE = "users.json"
+
+def load_data():
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+def save_data(data):
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
 
 positions = {
     "Бродильний Цех (Бродильщик)": 143,
@@ -17,7 +29,7 @@ positions = {
     "Кегомийний Цех (Цех наливу СКЛА)": 110
 }
 
-user_data = {}
+user_data = load_data()
 
 
 def main_keyboard():
