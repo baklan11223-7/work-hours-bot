@@ -11,6 +11,37 @@ ADMIN_ID = 4440544791
 
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
+
+conn = sqlite3.connect("database.db", check_same_thread=False)
+cursor = conn.cursor()
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    user_id TEXT PRIMARY KEY,
+    name TEXT
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS shifts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT,
+    date TEXT,
+    hours REAL,
+    total REAL
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS advances (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT,
+    amount REAL
+)
+""")
+
+conn.commit()
+
 DATA_FILE = "users.json"
 
 def load_data():
