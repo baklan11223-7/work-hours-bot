@@ -172,13 +172,15 @@ def handle(message):
             hours = round(worked_minutes / 60, 2)
             total = round(hours * user["rate"], 2)
 
-            user["shifts"].append({
-                "date": f"{datetime.now().year}-{datetime.now().month:02d}-{user['selected_day']:02d}",
-                "hours": hours,
-                "total": total
-            })
-            
-            save_data(user_data)
+            user_id = str(chat_id)
+date = datetime.now().strftime("%Y-%m-%d")
+
+cursor.execute("""
+INSERT INTO shifts (user_id, date, hours, total)
+VALUES (?, ?, ?, ?)
+""", (user_id, date, hours, total))
+
+conn.commit()
 
             user["step"] = None
 
