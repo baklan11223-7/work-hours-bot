@@ -141,7 +141,7 @@ def handle(message):
             total = round(hours * user["rate"], 2)
 
             user["shifts"].append({
-                "date": datetime.now(),
+                "date": datetime.now().strftime("%Y-%m-%d")
                 "hours": hours,
                 "total": total
             })
