@@ -13,7 +13,7 @@ bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-conn = psycopg2.connect(DATABASE_URL, sslmode="reqyire")
+conn = psycopg2.connect(DATABASE_URL, sslmode="require")
 cursor = conn.cursor()
 
 positions = {
