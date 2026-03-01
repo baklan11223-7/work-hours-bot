@@ -4,7 +4,7 @@ from flask import Flask, request
 import telebot
 from telebot import types
 from datetime import datetime
-import sqlite3
+import psycopg2
 
 TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = 4440544791
@@ -12,56 +12,12 @@ ADMIN_ID = 4440544791
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
-conn = sqlite3.connect("database.db", check_same_thread=False)
-cursor = conn.cursor()
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS users (
-    user_id TEXT PRIMARY KEY,
-    name TEXT
-)
-""")
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS shifts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id TEXT,
-    date TEXT,
-    hours REAL,
-    total REAL
-)
-""")
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS advances (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id TEXT,
-    amount REAL
-)
-""")
-
-conn.commit()
-
-DATA_FILE = "users.json"
-
-def load_data():
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
-
-def save_data(data):
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
-
 positions = {
     "Бродильний Цех (Бродильщик)": 143,
     "Кегомийний Цех (Старший зміни)": 143,
     "Кегомийний Цех (Кегомийщик)": 110,
     "Кегомийний Цех (Цех наливу СКЛА)": 110
 }
-
-user_data = load_data()
 
 
 def main_keyboard():
