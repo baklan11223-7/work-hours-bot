@@ -12,6 +12,10 @@ ADMIN_ID = 4440544791
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
+DATABASE_URL = os.getenv("DATABASE_URL")
+conn = psycopg2.connect(DATABASE_URL)
+cursor = conn.cursor()
+
 positions = {
     "Бродильний Цех (Бродильщик)": 143,
     "Кегомийний Цех (Старший зміни)": 143,
